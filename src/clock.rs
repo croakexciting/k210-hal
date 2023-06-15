@@ -11,6 +11,7 @@ use crate::time::Hertz;
 pub struct Clocks {
     pub(crate) aclk: Hertz,
     pub(crate) apb0: Hertz,
+    pub(crate) apb2: Hertz,
 }
 
 impl Clocks {
@@ -28,6 +29,7 @@ impl Clocks {
         Self {
             aclk: Hertz(390_000_000),
             apb0: Hertz(195_000_000),
+            apb2: Hertz(195_000_000),
         }
     }
 
@@ -39,5 +41,9 @@ impl Clocks {
     /// Returns APB0 frequency
     pub fn apb0(&self) -> Hertz {
         self.apb0
+    }
+
+    pub fn apb2(&self) -> Hertz {
+        self.apb2
     }
 }

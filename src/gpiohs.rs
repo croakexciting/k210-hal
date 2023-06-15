@@ -27,12 +27,16 @@ impl GpiohsExt for GPIOHS {
     fn split(self) -> Parts {
         Parts {
             gpiohs0: Gpiohs0 { _mode: PhantomData },
+            gpiohs30: Gpiohs { index: 30 },
+            gpiohs31: Gpiohs { index: 31 },
         }
     }
 }
 
 pub struct Parts {
     pub gpiohs0: Gpiohs0<Input<Floating>>,
+    pub gpiohs30: Gpiohs,
+    pub gpiohs31: Gpiohs,
 }
 
 pub struct Gpiohs0<MODE> {
@@ -149,6 +153,26 @@ impl<MODE> OutputPin for Gpiohs0<Output<MODE>> {
             u32_set_bit(p, false, 0);
         }
         Ok(())
+    }
+}
+
+pub struct Gpiohs {
+    index: usize,
+}
+
+impl Gpiohs {
+    pub fn set_pull_up_output(&self) {
+        GPIOHS::set_output_en(self.index, true);
+        GPIOHS::set_input_en(self.index, false);
+        GPIOHS::set_pullup_en(self.index, true);
+    }
+
+    pub fn set_high(&self) {
+        GPIOHS::set_output_value(self.index, true);
+    }
+
+    pub fn set_low(&self) {
+        GPIOHS::set_output_value(self.index, false);
     }
 }
 
