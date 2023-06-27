@@ -7,6 +7,7 @@ use crate::time::Hertz;
 use core::convert::Infallible;
 use crate::pac::spi0::{ctrlr0::TMOD_A, spi_ctrlr0::AITM_A};
 pub use embedded_hal::spi::{Mode, Phase, Polarity};
+use k210_pac::SYSCTL;
 
 ///
 pub struct Spi<SPI> {
@@ -28,7 +29,7 @@ impl Spi<SPI0> {
     ) -> Self {
         let work_mode = hal_mode_to_pac(mode);
         let frame_format = frame_format_to_pac(frame_format);
-        let tmod = crate::pac::spi0::ctrlr0::TMOD_A::TRANS_RECV; // todo other modes
+        let tmod = crate::pac::spi0::ctrlr0::TMOD_A::TRANS; // todo other modes
         let endian = endian as u32;
         let _ = clock; // todo
         unsafe {
@@ -55,9 +56,16 @@ impl Spi<SPI0> {
             spi.spi_ctrlr0.reset(); // standard
             spi.endian.write(|w| w.bits(endian));
         }
-        // enable APB0 bus
+        // enable APB2 bus
         apb2.enable();
         // enable peripheral via sysctl
+        unsafe {
+            let ptr = SYSCTL::ptr();
+            (*ptr).misc.write(|w| {
+                w.spi_dvp_data_enable().set_bit()
+            });
+            (*ptr).clk_th1.write(|w| w.spi0_clk().bits(0));
+        }
         sysctl::clk_en_peri().modify(|_r, w| w.spi0_clk_en().set_bit());
         Spi { spi, cs_id, clk: clock.apb2() }
     }
